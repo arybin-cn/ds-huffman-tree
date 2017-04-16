@@ -21,6 +21,43 @@ typedef struct{
   HtNode* nodes;
 } HtTree, *PHtTree;
 
+// Utils
+
+int strLen(char* str){
+  int i=0;
+  while(str[i]!='\0') i++;
+  return i;
+}
+
+int analyseString(char* str,OUT char** occurs,OUT int **occursCount,OUT char** maps){
+  //assume that str is made up of 128 printable ascii chars
+  char currentChar;
+  int uniqCount=0;
+  int j,i=0,tmpOccurs[128]={0};
+  while((currentChar=str[i])!='\0'){
+    if(currentChar>-1 && currentChar<128){
+      if(tmpOccurs[currentChar]==0){
+        uniqCount++;
+      }
+      tmpOccurs[currentChar]+=1;
+    }
+    i++;
+  }
+  *occurs=(char*)malloc(sizeof(char)*uniqCount);
+  *occursCount=(int*)malloc(sizeof(int)*uniqCount);
+  *maps=(char*)malloc(sizeof(char)*128);
+  for(j=0,i=0;i<128;i++){
+    if(tmpOccurs[i]>0){
+      (*maps)[i]=j;
+      (*occurs)[j]=i;
+      (*occursCount)[j]=tmpOccurs[i];
+      j++;continue;
+    }
+    (*maps)[i]=-1;
+  }
+  return uniqCount;
+}
+
 //*************************HtTree Start*************************
 
 PHtTree buildHtTree(int *rawData, int length){
@@ -120,7 +157,7 @@ PBitBuffer buildBitBuffer(int bits){
   void *buffer;
   if(bits > 0){
     pBitBuffer=(PBitBuffer)malloc(sizeof(BitBuffer));
-    byteSize=bits/BITS_OF_CHAR+(bits%BITS_OF_CHAR==0);
+    byteSize=bits/BITS_OF_CHAR+(bits%BITS_OF_CHAR!=0);
     buffer=malloc(byteSize);
     if(pBitBuffer && buffer){
       pBitBuffer->byteSize=byteSize;
@@ -135,24 +172,16 @@ PBitBuffer buildBitBuffer(int bits){
   return NULL;
 }
 
-//Make sure that one char eight bits!
-int bitLengthOfChar(char charData){
-  int length;
-  for(length=BITS_OF_CHAR-1;!(charData&(1<<length))&&length>-1;length--);
-  return length+1;
-}
-int appendBitBufferByChar(PBitBuffer pBitBuffer,char charData){
-  int bitLengthData;
+int appendBitBufferByChar(PBitBuffer pBitBuffer,char charData,int bitLengthData){
   int bitLengthCurrent;
   int maxBits=pBitBuffer->byteSize*BITS_OF_CHAR;
   char* current;
-  bitLengthData=bitLengthOfChar(charData);
   if(pBitBuffer->cursor+bitLengthData>maxBits){
     printf("Insufficient buffer..\n");
     return 0;
   }
   current=((char*)pBitBuffer->buffer)+pBitBuffer->cursor/BITS_OF_CHAR;
-  bitLengthCurrent=bitLengthOfChar(*current);
+  bitLengthCurrent=pBitBuffer->cursor%BITS_OF_CHAR;
   (*current)|=(charData<<bitLengthCurrent);
   (*(current+1))|=(charData>>(BITS_OF_CHAR-bitLengthCurrent));
   pBitBuffer->cursor+=bitLengthData;
@@ -180,42 +209,37 @@ void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){
   printBuffer(pBitBuffer->buffer,pBitBuffer->byteSize*BITS_OF_CHAR,bitsPerGroup,groupsPerLine);
 }
 
+PBitBuffer buildBitBufferFromString(char* str,OUT char** maps){
+  PHtTree pHtTree;
+  PBitBuffer pBitBuffer;
+  int i,uniqCount,strLength;
+  char *occurs,*rawMaps,*paths,*pathsLength;
+  int *occursCount;
+
+  strLength=strLen(str);
+  (*maps)=(char*)malloc(128*sizeof(char));
+  uniqCount=analyseString(str,&occurs,&occursCount,&rawMaps);
+  pHtTree=buildHtTree(occursCount,uniqCount);
+  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
+
+  printHtTree(pHtTree);
+
+  pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
+
+  for(i=0;i<128;i++){
+    if(rawMaps[i]>-1){
+      (*maps)[i]=paths[rawMaps[i]];
+    }
+  }
+  for(i=0;i<strLength;i++){
+    appendBitBufferByChar(pBitBuffer,
+        (*maps)[str[i]],pathsLength[rawMaps[str[i]]]);
+  }
+  return pBitBuffer;
+}
+
 //*************************BitBuffer END*************************
 
-int strLen(char* str){
-  int i=0;
-  while(str[i]!='\0') i++;
-  return i;
-}
-
-int analyseString(char* str,OUT char** occurs,OUT int **occursCount,OUT char** maps){
-  //assume that str is made up with 128 printable ascii chars
-  char currentChar;
-  int uniqCount=0;
-  int j,i=0,tmpOccurs[128]={0};
-  while((currentChar=str[i])!='\0'){
-    if(currentChar>-1 && currentChar<128){
-      if(tmpOccurs[currentChar]==0){
-        uniqCount++;
-      }
-      tmpOccurs[currentChar]+=1;
-    }
-    i++;
-  }
-  *occurs=(char*)malloc(sizeof(char)*uniqCount);
-  *occursCount=(int*)malloc(sizeof(int)*uniqCount);
-  *maps=(char*)malloc(sizeof(char)*128);
-  for(j=0,i=0;i<128;i++){
-    if(tmpOccurs[i]>0){
-      (*maps)[i]=j;
-      (*occurs)[j]=i;
-      (*occursCount)[j]=tmpOccurs[i];
-      j++;continue;
-    }
-    (*maps)[i]=-1;
-  }
-  return uniqCount;
-}
 
 int main(){
   PHtTree pHtTree;
@@ -224,12 +248,12 @@ int main(){
   unsigned long strLength,bitLength;
   char *occurs,*maps,*paths,*pathsLength;
   int *occursCount;
-  char str[]="FFF!Hello";
+  char str[]="FFF!!HelloWorld~~~";
 
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
-  for(i=0;i<uniqCount;i++){
-    printf("%c:%d\n",occurs[i],occursCount[i]);
-  }
+//  for(i=0;i<uniqCount;i++){
+//    printf("%c:%d\n",occurs[i],occursCount[i]);
+//  }
 
   strLength=strLen(str);
   printf("Raw string length(bytes/bits): %lu/%lu\n",
@@ -244,9 +268,9 @@ int main(){
 
   printf("\n");
 
-  pBitBuffer=buildBitBuffer(20);
-  appendBitBufferByChar(pBitBuffer,11);
-  printBitBuffer(pBitBuffer,4,3);
+  pBitBuffer=buildBitBufferFromString(str,&maps);
+  printBitBuffer(pBitBuffer,4,8);
+
 
   //PBitBuffer pBitBuffer = buildBitBuffer(160);
   //appendBitBufferByChar(pBitBuffer,1);
