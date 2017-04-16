@@ -18,6 +18,8 @@ typedef struct{
   HtNode* nodes;
 } HtTree, *PHtTree;
 
+//*************************HtTree Start*************************
+
 PHtTree buildHuff(int *rawData, int length){
   int i,j,minIndex,secMinIndex;
   PHtTree pHtTree=(PHtTree)malloc(sizeof(HtTree));
@@ -80,6 +82,10 @@ void printHtTree(HtTree* pHtTree){
     printf("%6d |%7d |%7d |%5d |%6d\n",i,node.weight,node.parent,node.left,node.right);
   }
 }
+
+//*************************HtTree End*************************
+
+//*************************BitBuffer Start*************************
 
 PBitBuffer buildBitBuffer(int bits){
   int size;
@@ -145,12 +151,16 @@ void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){
   printBuffer(pBitBuffer->buffer,pBitBuffer->size,bitsPerGroup,groupsPerLine);
 }
 
+//*************************BitBuffer END*************************
+
 int main(){
   PBitBuffer pBitBuffer = buildBitBuffer(160);
   appendBitBufferByChar(pBitBuffer,1);
   appendBitBufferByChar(pBitBuffer,11);
   appendBitBufferByChar(pBitBuffer,12);
-  printBitBuffer(pBitBuffer,4,8);
+  char shit=123;
+  printBuffer(&shit,8,4,2);
+  //printBitBuffer(pBitBuffer,4,8);
   //int a=5;
   //int i;
   //int data[a];
