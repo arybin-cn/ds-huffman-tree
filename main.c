@@ -182,7 +182,52 @@ void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){
 
 //*************************BitBuffer END*************************
 
+int analyseString(char* str,OUT char** occurs,OUT int **occursCount,OUT char** maps){
+  //assume that str is made up with 128 printable ascii chars
+  char currentChar;
+  int uniqCount=0;
+  int j,i=0,tmpOccurs[128]={0};
+  while((currentChar=str[i])!='\0'){
+    if(currentChar>-1 && currentChar<128){
+      if(tmpOccurs[currentChar]==0){
+        uniqCount++;
+      }
+      tmpOccurs[currentChar]+=1;
+    }
+    i++;
+  }
+  *occurs=(char*)malloc(sizeof(char)*uniqCount);
+  *occursCount=(int*)malloc(sizeof(int)*uniqCount);
+  *maps=(char*)malloc(sizeof(char)*128);
+  for(j=0,i=0;i<128;i++){
+    if(tmpOccurs[i]>0){
+      (*maps)[i]=j;
+      (*occurs)[j]=i;
+      (*occursCount)[j]=tmpOccurs[i];
+      j++;continue;
+    }
+    (*maps)[i]=-1;
+  }
+  return uniqCount;
+}
+
 int main(){
+  int i;
+  char str[]="Hello World";
+  int uniq;
+  char* occurs;
+  char* maps;
+  int* occursCount;
+  uniq=analyseString(str,&occurs,&occursCount,&maps);
+  printf("%d\n",uniq);
+  for(i=0;i<uniq;i++){
+    printf("%c:%d\n",occurs[i],occursCount[i]);
+  }
+
+  printf("%d\n",maps['s']);
+  printf("%d\n",maps['f']);
+
+
   //PBitBuffer pBitBuffer = buildBitBuffer(160);
   //appendBitBufferByChar(pBitBuffer,1);
   //appendBitBufferByChar(pBitBuffer,11);
@@ -190,24 +235,20 @@ int main(){
   //char shit=123;
   //printBuffer(&shit,8,4,2);
   //printBitBuffer(pBitBuffer,4,8);
-  int size=10;
-  int i;
-  int data[size];
-  for(i=0;i<size;i++){
-    data[i]=(i+1)*(i+1);
-  }
-  HtTree* pHtTree =buildHtTree(data,size);
-  printHtTree(pHtTree);
-  printf("%d\n",getHtTreeWPL(pHtTree));
-  char* paths;
-  char* pathsLength;
-  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
-  for(i=0;i<1;i++){
-    printf("%d:%d\n",paths[i],pathsLength[i]);
-  }
+  // int size=5;
+  // int i;
+  // int data[size];
+  // for(i=0;i<size;i++){
+  //   data[i]=(i+1)*(i+1);
+  // }
+  // HtTree* pHtTree =buildHtTree(data,size);
+  // printHtTree(pHtTree);
+  // printf("%d\n",getHtTreeWPL(pHtTree));
+  // char* paths;
+  // char* pathsLength;
+  // buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
+  // for(i=0;i<1;i++){
+  //   printf("%d:%d\n",paths[i],pathsLength[i]);
+  // }
 }
-
-
-
-
 
