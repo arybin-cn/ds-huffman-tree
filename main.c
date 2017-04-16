@@ -164,7 +164,7 @@ void printBuffer(void* buffer,int bitSize,int bitsPerGroup,int groupsPerLine){
   char* current;
   for(;i<bitSize;i++){
     current=((char*)buffer)+i/BITS_OF_CHAR;
-    printf("%d",(int)(((*current)>>j)&(15<<j)!=0));
+    printf("%d",(int)(((*current)&(1<<j))!=0));
     if((++k%bitsPerGroup)==0){
       k=0;printf(" ");
       if((++l%groupsPerLine)==0){
@@ -219,6 +219,7 @@ int analyseString(char* str,OUT char** occurs,OUT int **occursCount,OUT char** m
 
 int main(){
   PHtTree pHtTree;
+  PBitBuffer pBitBuffer;
   int i,uniqCount;
   unsigned long strLength,bitLength;
   char *occurs,*maps,*paths,*pathsLength;
@@ -243,6 +244,9 @@ int main(){
 
   printf("\n");
 
+  pBitBuffer=buildBitBuffer(20);
+  appendBitBufferByChar(pBitBuffer,11);
+  printBitBuffer(pBitBuffer,4,3);
 
   //PBitBuffer pBitBuffer = buildBitBuffer(160);
   //appendBitBufferByChar(pBitBuffer,1);
