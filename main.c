@@ -15,14 +15,14 @@ typedef struct{
 } HtNode;
 
 typedef struct{
-  int nodeCount;
+  int leafCount;
   int root;
   HtNode* nodes;
 } HtTree, *PHtTree;
 
 //*************************HtTree Start*************************
 
-PHtTree buildHuff(int *rawData, int length){
+PHtTree buildHtTree(int *rawData, int length){
   int i,j,minIndex,secMinIndex;
   PHtTree pHtTree=(PHtTree)malloc(sizeof(HtTree));
   HtNode* nodes=(HtNode*)malloc(sizeof(HtNode)*(2*length-1));
@@ -70,17 +70,16 @@ PHtTree buildHuff(int *rawData, int length){
     nodes[length+i].right=secMinIndex;
   }
   pHtTree->nodes=nodes;
-  pHtTree->nodeCount=length*2-1;
-  pHtTree->root=pHtTree->nodeCount-1;
+  pHtTree->leafCount=length;
+  pHtTree->root=pHtTree->leafCount*2-2;
   return pHtTree;
 }
 
 void buildHtTreePathInChar(HtTree* pHtTree,OUT char** paths,OUT char** pathsLength){
-  int leafCount=(pHtTree->nodeCount+1)/2;
   int i,j,tmpLength;
-  *paths=(char*)malloc(sizeof(char)*leafCount);
-  *pathsLength=(char*)malloc(sizeof(char)*leafCount);
-  for(i=0;i<leafCount;i++){
+  *paths=(char*)malloc(sizeof(char)*(pHtTree->leafCount));
+  *pathsLength=(char*)malloc(sizeof(char)*(pHtTree->leafCount));
+  for(i=0;i<pHtTree->leafCount;i++){
     tmpLength=0;j=i;
     while(pHtTree->nodes[j].parent!=-1){
       tmpLength+=1;
@@ -96,10 +95,21 @@ void printHtTree(HtTree* pHtTree){
   int i;
   HtNode node;
   printf(" index | weight | parent | left | right\n");
-  for(i=0;i<pHtTree->nodeCount;i++){
+  for(i=0;i<pHtTree->leafCount*2-1;i++){
     node=pHtTree->nodes[i];
     printf("%6d |%7d |%7d |%5d |%6d\n",i,node.weight,node.parent,node.left,node.right);
   }
+}
+
+int getHtTreeWPL(PHtTree pHtTree){
+  char *paths;
+  char *pathsLength;
+  int i,wpl=0;
+  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
+  for(i=0;i<pHtTree->leafCount;i++){
+    wpl+=pHtTree->nodes[i].weight*pathsLength[i];
+  }
+  return wpl;
 }
 
 //*************************HtTree End*************************
@@ -180,14 +190,15 @@ int main(){
   //char shit=123;
   //printBuffer(&shit,8,4,2);
   //printBitBuffer(pBitBuffer,4,8);
-  int a=5;
+  int size=10;
   int i;
-  int data[a];
-  for(i=0;i<a;i++){
+  int data[size];
+  for(i=0;i<size;i++){
     data[i]=(i+1)*(i+1);
   }
-  HtTree* pHtTree =buildHuff(data,a);
+  HtTree* pHtTree =buildHtTree(data,size);
   printHtTree(pHtTree);
+  printf("%d\n",getHtTreeWPL(pHtTree));
   char* paths;
   char* pathsLength;
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
