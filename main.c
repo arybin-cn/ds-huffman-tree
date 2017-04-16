@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <malloc.h>
 
+#define OUT
+
 typedef struct{
   void* buffer;
   int cursor;
@@ -71,6 +73,23 @@ PHtTree buildHuff(int *rawData, int length){
   pHtTree->nodeCount=length*2-1;
   pHtTree->root=pHtTree->nodeCount-1;
   return pHtTree;
+}
+
+void buildHtTreePathInChar(HtTree* pHtTree,OUT char** paths,OUT char** pathsLength){
+  int leafCount=(pHtTree->nodeCount+1)/2;
+  int i,j,tmpLength;
+  *paths=(char*)malloc(sizeof(char)*leafCount);
+  *pathsLength=(char*)malloc(sizeof(char)*leafCount);
+  for(i=0;i<leafCount;i++){
+    tmpLength=0;j=i;
+    while(pHtTree->nodes[j].parent!=-1){
+      tmpLength+=1;
+      (*paths)[i]<<=1;
+      (*paths)[i]|=(pHtTree->nodes[pHtTree->nodes[j].parent].left==j);
+      j=pHtTree->nodes[j].parent;
+    }
+    (*pathsLength)[i]=tmpLength;
+  }
 }
 
 void printHtTree(HtTree* pHtTree){
@@ -154,21 +173,27 @@ void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){
 //*************************BitBuffer END*************************
 
 int main(){
-  PBitBuffer pBitBuffer = buildBitBuffer(160);
-  appendBitBufferByChar(pBitBuffer,1);
-  appendBitBufferByChar(pBitBuffer,11);
-  appendBitBufferByChar(pBitBuffer,12);
-  char shit=123;
-  printBuffer(&shit,8,4,2);
+  //PBitBuffer pBitBuffer = buildBitBuffer(160);
+  //appendBitBufferByChar(pBitBuffer,1);
+  //appendBitBufferByChar(pBitBuffer,11);
+  //appendBitBufferByChar(pBitBuffer,12);
+  //char shit=123;
+  //printBuffer(&shit,8,4,2);
   //printBitBuffer(pBitBuffer,4,8);
-  //int a=5;
-  //int i;
-  //int data[a];
-  //for(i=0;i<a;i++){
-  //  data[i]=(i+1)*(i+1);
-  //}
-  //HtTree* pHtTree =buildHuff(data,a);
-  //printHtTree(pHtTree);
+  int a=5;
+  int i;
+  int data[a];
+  for(i=0;i<a;i++){
+    data[i]=(i+1)*(i+1);
+  }
+  HtTree* pHtTree =buildHuff(data,a);
+  printHtTree(pHtTree);
+  char* paths;
+  char* pathsLength;
+  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
+  for(i=0;i<1;i++){
+    printf("%d:%d\n",paths[i],pathsLength[i]);
+  }
 }
 
 
