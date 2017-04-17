@@ -222,8 +222,6 @@ PBitBuffer buildBitBufferFromString(char* str,OUT char** maps){
   pHtTree=buildHtTree(occursCount,uniqCount);
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
 
-  printHtTree(pHtTree);
-
   pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
 
   for(i=0;i<128;i++){
@@ -248,12 +246,14 @@ int main(){
   unsigned long strLength,bitLength;
   char *occurs,*maps,*paths,*pathsLength;
   int *occursCount;
-  char str[]="FFF!!HelloWorld~~~";
+  char str[]="Hello";
 
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
 //  for(i=0;i<uniqCount;i++){
 //    printf("%c:%d\n",occurs[i],occursCount[i]);
 //  }
+
+  printf("\n");
 
   strLength=strLen(str);
   printf("Raw string length(bytes/bits): %lu/%lu\n",
