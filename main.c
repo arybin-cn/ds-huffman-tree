@@ -7,6 +7,7 @@
 typedef struct{
   int uniqCount;
   int totalCount;
+  int dataSize;
   void *data;
   char *chars;
   char *paths;
@@ -244,6 +245,13 @@ PEncodedString encodeString(char* str){
   pEncodedString->data=pBitBuffer->buffer;
   pEncodedString->totalCount=strLength;
   pEncodedString->uniqCount=uniqCount;
+  pEncodedString->dataSize=pBitBuffer->byteSize;
+
+  for(i=0;i<uniqCount;i++){
+    printf("%c:%d\n",occurs[i],paths[i]);
+  }
+  printBitBuffer(pBitBuffer,4,5);
+
 
   free(maps);free(occursCount);
   free(pHtTree->nodes);free(pHtTree);
@@ -252,14 +260,48 @@ PEncodedString encodeString(char* str){
   return pEncodedString;
 }
 
-char* decodeString(PEncodedString pEncodedString){
+char* decodeString(PEncodedString p){
+  int count=0;
+  int i,j,cursor,max,length;
+  char tmp;
+  char current=0;
+  char currentLength=0;
 
+
+  for(cursor=0,max=p->dataSize*8;cursor<max;cursor++){
+    tmp=((char*)p->data)[cursor/BITS_OF_CHAR];
+    tmp=(tmp&(1<<(cursor%BITS_OF_CHAR)))!=0;
+    current|=(tmp<<currentLength);
+    for(i=0,j=-1;i<p->uniqCount;i++){
+      if((p->paths[i])==current){
+        if(j==-1){
+          j=i;
+        }else{
+          j=-1;
+          break;
+        }
+      }
+    }
+    if(j!=-1){
+      printf("%c",p->chars[j]);
+      current=0;
+      currentLength=0;
+    }else{
+      currentLength++;
+    }
+  }
+
+  return "*";
 }
 
 int main(){
-  char str[]="Hello";
+  PEncodedString pEncodedString;
+  char a[]="Hello";
+  char* b;
 
+  pEncodedString=encodeString(a);
   printf("\n");
+  printf("%s\n",decodeString(pEncodedString));
 
 }
 
