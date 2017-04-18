@@ -3,6 +3,8 @@
 
 #define BITS_OF_CHAR 8
 #define OUT
+#define DBG
+
 
 typedef struct{
   int uniqCount;
@@ -231,6 +233,12 @@ PEncodedString encodeString(char* str){
   strLength=strLen(str);
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
   pHtTree=buildHtTree(occursCount,uniqCount);
+
+#ifdef DBG
+  printHtTree(pHtTree);
+#endif
+
+
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
   pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
 
@@ -247,11 +255,19 @@ PEncodedString encodeString(char* str){
   pEncodedString->uniqCount=uniqCount;
   pEncodedString->dataSize=pBitBuffer->byteSize;
 
-  for(i=0;i<uniqCount;i++){
-    printf("%c:%d\n",occurs[i],paths[i]);
-  }
-  printBitBuffer(pBitBuffer,4,5);
 
+#ifdef DBG
+  printf("***************Separator**************\n");
+  for(i=0,j=0;i<uniqCount;i++){
+    printf(" %c %.3d | ",occurs[i],paths[i]);
+    if(++j%3==0){
+      printf("\n");
+    }
+  }
+  printf("\n***************Separator**************\n");
+  printBitBuffer(pBitBuffer,4,8);
+  printf("%s\n",str);
+#endif
 
   free(maps);free(occursCount);
   free(pHtTree->nodes);free(pHtTree);
@@ -261,19 +277,16 @@ PEncodedString encodeString(char* str){
 }
 
 char* decodeString(PEncodedString p){
-  int count=0;
-  int i,j,cursor,max,length;
-  char tmp;
-  char current=0;
-  char currentLength=0;
-
-
-  for(cursor=0,max=p->dataSize*8;cursor<max;cursor++){
-    tmp=((char*)p->data)[cursor/BITS_OF_CHAR];
-    tmp=(tmp&(1<<(cursor%BITS_OF_CHAR)))!=0;
-    current|=(tmp<<currentLength);
+  int i,j,count=0,cursor=0,max=p->dataSize*8;
+  char currentBit,matched,currentChar=0,offset=0;
+  char* str=(char*)malloc(p->uniqCount*sizeof(char));
+  while(cursor<max && count<p->totalCount){
+    currentBit=((char*)p->data)[cursor/BITS_OF_CHAR];
+    currentBit=(currentBit&(1<<(cursor%BITS_OF_CHAR)))!=0;
+    currentChar|=(currentBit<<offset);
     for(i=0,j=-1;i<p->uniqCount;i++){
-      if((p->paths[i])==current){
+      matched=!(char)((p->paths[i]^currentChar)<<(BITS_OF_CHAR-(offset+1)));
+      if(matched){
         if(j==-1){
           j=i;
         }else{
@@ -283,25 +296,26 @@ char* decodeString(PEncodedString p){
       }
     }
     if(j!=-1){
-      printf("%c",p->chars[j]);
-      current=0;
-      currentLength=0;
+      str[count++]=p->chars[j];
+      currentChar=0;
+      offset=0;
     }else{
-      currentLength++;
+      offset++;
     }
+    cursor++;
   }
-
-  return "*";
+  return str;
 }
 
+
 int main(){
+
+
   PEncodedString pEncodedString;
-  char a[]="Hello";
-  char* b;
+  char a[]="Hello World!!!";
 
   pEncodedString=encodeString(a);
-  printf("\n");
-  printf("%s\n",decodeString(pEncodedString));
+  decodeString(pEncodedString);
 
 }
 
