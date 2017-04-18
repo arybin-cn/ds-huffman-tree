@@ -259,12 +259,12 @@ PEncodedString encodeString(char* str){
 #ifdef DBG
   printf("***************Separator**************\n");
   for(i=0,j=0;i<uniqCount;i++){
-    printf(" %c %.3d | ",occurs[i],paths[i]);
+    printf(" %c %3d | ",occurs[i],occursCount[i]);
     if(++j%3==0){
       printf("\n");
     }
   }
-  printf("\n***************Separator**************\n");
+  printf("***************Separator**************\n");
   printBitBuffer(pBitBuffer,4,8);
   printf("%s\n",str);
 #endif
