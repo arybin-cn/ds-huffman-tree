@@ -5,6 +5,14 @@
 #define OUT
 
 typedef struct{
+  int uniqCount;
+  int totalCount;
+  void *data;
+  char *chars;
+  char *paths;
+} EncodedString,*PEncodedString;
+
+typedef struct{
   void* buffer;
   int cursor;
   int byteSize;
@@ -209,90 +217,49 @@ void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){
   printBuffer(pBitBuffer->buffer,pBitBuffer->byteSize*BITS_OF_CHAR,bitsPerGroup,groupsPerLine);
 }
 
-PBitBuffer buildBitBufferFromString(char* str,OUT char** maps){
-  PHtTree pHtTree;
-  PBitBuffer pBitBuffer;
-  int i,uniqCount,strLength;
-  char *occurs,*rawMaps,*paths,*pathsLength;
-  int *occursCount;
-
-  strLength=strLen(str);
-  (*maps)=(char*)malloc(128*sizeof(char));
-  uniqCount=analyseString(str,&occurs,&occursCount,&rawMaps);
-  pHtTree=buildHtTree(occursCount,uniqCount);
-  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
-
-  pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
-
-  for(i=0;i<128;i++){
-    if(rawMaps[i]>-1){
-      (*maps)[i]=paths[rawMaps[i]];
-    }
-  }
-  for(i=0;i<strLength;i++){
-    appendBitBufferByChar(pBitBuffer,
-        (*maps)[str[i]],pathsLength[rawMaps[str[i]]]);
-  }
-  return pBitBuffer;
-}
-
 //*************************BitBuffer END*************************
 
-
-int main(){
+PEncodedString encodeString(char* str){
+  PEncodedString pEncodedString;
   PHtTree pHtTree;
   PBitBuffer pBitBuffer;
-  int i,uniqCount;
-  unsigned long strLength,bitLength;
+  int i,j,uniqCount,strLength;
   char *occurs,*maps,*paths,*pathsLength;
   int *occursCount;
-  char str[]="Hello";
-
-  uniqCount=analyseString(str,&occurs,&occursCount,&maps);
-//  for(i=0;i<uniqCount;i++){
-//    printf("%c:%d\n",occurs[i],occursCount[i]);
-//  }
-
-  printf("\n");
 
   strLength=strLen(str);
-  printf("Raw string length(bytes/bits): %lu/%lu\n",
-      strLength,strLength*sizeof(char)*BITS_OF_CHAR);
-
+  uniqCount=analyseString(str,&occurs,&occursCount,&maps);
   pHtTree=buildHtTree(occursCount,uniqCount);
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
+  pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
 
-  bitLength=getHtTreeWPL(pHtTree,pathsLength);
-  printf("Encoded string length(bytes/bits): %lu/%lu\n",
-      bitLength/BITS_OF_CHAR+(bitLength%BITS_OF_CHAR!=0),bitLength);
+  for(i=0;i<strLength;i++){
+    j=maps[str[i]];
+    appendBitBufferByChar(pBitBuffer,paths[j],pathsLength[j]);
+  }
+
+  pEncodedString = (PEncodedString)malloc(sizeof(EncodedString));
+  pEncodedString->chars=occurs;
+  pEncodedString->paths=paths;
+  pEncodedString->data=pBitBuffer->buffer;
+  pEncodedString->totalCount=strLength;
+  pEncodedString->uniqCount=uniqCount;
+
+  free(maps);free(occursCount);
+  free(pHtTree->nodes);free(pHtTree);
+  free(pBitBuffer);
+
+  return pEncodedString;
+}
+
+char* decodeString(PEncodedString pEncodedString){
+
+}
+
+int main(){
+  char str[]="Hello";
 
   printf("\n");
 
-  pBitBuffer=buildBitBufferFromString(str,&maps);
-  printBitBuffer(pBitBuffer,4,8);
-
-
-  //PBitBuffer pBitBuffer = buildBitBuffer(160);
-  //appendBitBufferByChar(pBitBuffer,1);
-  //appendBitBufferByChar(pBitBuffer,11);
-  //appendBitBufferByChar(pBitBuffer,12);
-  //char shit=123;
-  //printBuffer(&shit,8,4,2);
-  //printBitBuffer(pBitBuffer,4,8);
-  // int byteSize=5;
-  // int i;
-  // int data[byteSize];
-  // for(i=0;i<byteSize;i++){
-  //   data[i]=(i+1)*(i+1);
-  // }
-  // HtTree* pHtTree =buildHtTree(data,byteSize);
-  // printHtTree(pHtTree);
-  // printf("%d\n",getHtTreeWPL(pHtTree));
-  // char* paths;
-  // char* pathsLength;
-  // buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
-  // for(i=0;i<1;i++){
-  //   printf("%d:%d\n",paths[i],pathsLength[i]);
-  // }
 }
 
