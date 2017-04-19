@@ -257,14 +257,15 @@ PEncodedString encodeString(char* str){
 
 
 #ifdef DBG
-  printf("***************Separator**************\n");
+  printf("*************** Separator **************\n");
   for(i=0,j=0;i<uniqCount;i++){
     printf(" %c %3d | ",occurs[i],occursCount[i]);
     if(++j%3==0){
       printf("\n");
     }
   }
-  printf("***************Separator**************\n");
+  printf("\n");
+  printf("*************** Separator **************\n");
   printBitBuffer(pBitBuffer,4,8);
   printf("%s\n",str);
 #endif
@@ -277,7 +278,7 @@ PEncodedString encodeString(char* str){
 }
 
 char* decodeString(PEncodedString p){
-  int i,j,count=0,cursor=0,max=p->dataSize*8;
+  int i,j,count=0,cursor=0,max=p->dataSize*BITS_OF_CHAR;
   char currentBit,matched,currentChar=0,offset=0;
   char* str=(char*)malloc(p->uniqCount*sizeof(char));
   while(cursor<max && count<p->totalCount){
@@ -307,12 +308,24 @@ char* decodeString(PEncodedString p){
   return str;
 }
 
+int readTextFile(char* fileName,char** str){
+  FILE *file;unsigned long size;
+  if ((file=fopen(fileName,"rb"))!=NULL) {          
+    fseek(file,0,SEEK_END);                         
+    size=ftell(file);                               
+    (*str)=(char*)malloc(size);
+    fseek(file,0,SEEK_SET);
+    return fread(*str,1,size,file)==size ? size : 0;
+  }                                                 
+  return 0;
+}
 
 int main(){
 
 
   PEncodedString pEncodedString;
-  char a[]="Hello World!!!";
+  char *a="Hello World";
+  //readTextFile("article.txt",&a);
 
   pEncodedString=encodeString(a);
   decodeString(pEncodedString);
