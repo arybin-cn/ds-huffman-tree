@@ -5,6 +5,7 @@
 #include "httree.h"
 
 #define DBG
+#define BITS_OF_CHAR 8
 
 int strLen(char* str){
   int i=0;

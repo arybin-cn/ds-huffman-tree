@@ -2,6 +2,8 @@
 #include <malloc.h>
 #include "bitbuffer.h"
 
+#define BITS_OF_CHAR 8
+
 PBitBuffer buildBitBuffer(int bits){
   int byteSize;
   PBitBuffer pBitBuffer;

@@ -1,4 +1,3 @@
-#define BITS_OF_CHAR 8
 #define OUT
 
 typedef struct{
