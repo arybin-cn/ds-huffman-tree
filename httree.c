@@ -61,6 +61,7 @@ void buildHtTreePathInChar(HtTree* pHtTree,OUT char** paths,OUT char** pathsLeng
   *paths=(char*)malloc(sizeof(char)*(pHtTree->leafCount));
   *pathsLength=(char*)malloc(sizeof(char)*(pHtTree->leafCount));
   for(i=0;i<pHtTree->leafCount;i++){
+    (*paths)[i]=0;
     tmpLength=0;j=i;
     while(pHtTree->nodes[j].parent!=-1){
       tmpLength+=1;
