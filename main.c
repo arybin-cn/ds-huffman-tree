@@ -4,12 +4,12 @@
 #include "httree.h"
 #include "htencoder.h"
 
-#define DBG
-
 int main(){
 
   PEncodedString pEncodedString;
   char a[]="Hello World!!!";
+  //readTextFile("article.txt",&a);
+
   pEncodedString=encodeString(a);
   decodeString(pEncodedString);
 
