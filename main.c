@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include "htencoder.h"
+#include "strencoder.h"
 
 int main(){
-  char a[]="Hello World!!!";
+  char a[]="Hello World";
   PEncodedString pEncodedString;
-  //readTextFile("article.txt",&a);
+//readTextFile("article.txt",&a);
   pEncodedString=encodeString(a);
   decodeString(pEncodedString);
 }

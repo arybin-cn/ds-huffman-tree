@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
+
 #include "httree.h"
 
 PHtTree buildHtTree(int *rawData, int length){

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
+
 #include "bitbuffer.h"
 
 #define BITS_OF_CHAR 8
@@ -55,6 +56,7 @@ void printBuffer(void* buffer,int bitSize,int bitsPerGroup,int groupsPerLine){
     }
     j++;j%=BITS_OF_CHAR;
   }
+  printf("\n");
 }
 
 void printBitBuffer(PBitBuffer pBitBuffer,int bitsPerGroup,int groupsPerLine){

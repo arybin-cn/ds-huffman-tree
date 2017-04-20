@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <malloc.h>
+
 #include "bitbuffer.h"
-#include "htencoder.h"
 #include "httree.h"
+#include "strencoder.h"
 
 #define DBG
 #define BITS_OF_CHAR 8
@@ -58,7 +59,6 @@ PEncodedString encodeString(char* str){
   printHtTree(pHtTree);
 #endif
 
-
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
   pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
 
@@ -78,12 +78,16 @@ PEncodedString encodeString(char* str){
 #ifdef DBG
   printf("***************Separator**************\n");
   for(i=0,j=0;i<uniqCount;i++){
-    printf(" %c %.3d | ",occurs[i],paths[i]);
-    if(++j%3==0){
+    if(occurs[i]!='\n'){
+    printf("  %c %3d | ",occurs[i],occursCount[i]);
+    }else{
+    printf(" \\n %3d | ",occursCount[i]);
+    }
+    if(++j%4==0 && i<uniqCount-1){
       printf("\n");
     }
   }
-  printf("***************Separator**************\n");
+  printf("\n***************Separator**************\n");
   printBitBuffer(pBitBuffer,4,6);
   printf("%s\n",str);
 #endif
