@@ -11,7 +11,7 @@ PBitBuffer buildBitBuffer(int bits){
   void *buffer;
   if(bits > 0){
     pBitBuffer=(PBitBuffer)malloc(sizeof(BitBuffer));
-    byteSize=bits/BITS_OF_CHAR+(bits%BITS_OF_CHAR!=0);
+    byteSize=(bits/BITS_OF_CHAR)+((bits%BITS_OF_CHAR)!=0);
     buffer=malloc(byteSize);
     if(pBitBuffer && buffer){
       pBitBuffer->byteSize=byteSize;
@@ -19,8 +19,8 @@ PBitBuffer buildBitBuffer(int bits){
       pBitBuffer->cursor=0;
       return pBitBuffer;
     }
-    free(pBitBuffer);
     free(buffer);
+    free(pBitBuffer);
   }
   printf("Fail to build BitBuffer..");
   return NULL;
@@ -30,7 +30,7 @@ int appendBitBufferByChar(PBitBuffer pBitBuffer,char charData,int bitLengthData)
   int bitLengthCurrent;
   int maxBits=pBitBuffer->byteSize*BITS_OF_CHAR;
   char* current;
-  if(pBitBuffer->cursor+bitLengthData>maxBits){
+  if((pBitBuffer->cursor+bitLengthData)>maxBits){
     printf("Insufficient buffer..\n");
     return 0;
   }

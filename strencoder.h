@@ -9,7 +9,10 @@ typedef struct{
   char *paths;
 } EncodedString,*PEncodedString;
 
-int strLen(char* str);
+int readStringFromFile(char* filename,OUT char** str);
+int lengthOfString(char* str);
 int analyseString(char* str,OUT char** occurs,OUT int **occursCount,OUT char** maps);
+
 PEncodedString encodeString(char* str);
 char* decodeString(PEncodedString p);
+void releaseEncodedString(PEncodedString pEncodedString);

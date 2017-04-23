@@ -8,7 +8,18 @@
 #define DBG
 #define BITS_OF_CHAR 8
 
-int strLen(char* str){
+int readStringFromFile(char* fileName,OUT char** str){
+  FILE *file;unsigned long size;
+  if ((file=fopen(fileName,"rb"))!=NULL) {          
+    fseek(file,0,SEEK_END);                         
+    size=ftell(file);                               
+    (*str)=(char*)malloc(size);
+    fseek(file,0,SEEK_SET);
+    return fread(*str,1,size,file)==size ? size : 0;
+  }                                                 
+  return 0;
+}
+int lengthOfString(char* str){
   int i=0;
   while(str[i]!='\0') i++;
   return i;
@@ -51,14 +62,9 @@ PEncodedString encodeString(char* str){
   char *occurs,*maps,*paths,*pathsLength;
   int *occursCount;
 
-  strLength=strLen(str);
+  strLength=lengthOfString(str);
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
   pHtTree=buildHtTree(occursCount,uniqCount);
-
-#ifdef DBG
-  printHtTree(pHtTree);
-#endif
-
   buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
   pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
 
@@ -76,6 +82,9 @@ PEncodedString encodeString(char* str){
   pEncodedString->dataSize=pBitBuffer->byteSize;
 
 #ifdef DBG
+  printf("WPL:%d\n",getHtTreeWPL(pHtTree,pathsLength));
+  printf("***************Separator**************\n");
+  printHtTree(pHtTree);
   printf("***************Separator**************\n");
   for(i=0,j=0;i<uniqCount;i++){
     if(occurs[i]!='\n'){
@@ -99,16 +108,16 @@ PEncodedString encodeString(char* str){
   return pEncodedString;
 }
 
-char* decodeString(PEncodedString p){
-  int i,j,count=0,cursor=0,max=p->dataSize*8;
+char* decodeString(PEncodedString pEncodedString){
+  int i,j,count=0,cursor=0,max=pEncodedString->dataSize*8;
   char currentBit,matched,currentChar=0,offset=0;
-  char* str=(char*)malloc(p->uniqCount*sizeof(char));
-  while(cursor<max && count<p->totalCount){
-    currentBit=((char*)p->data)[cursor/BITS_OF_CHAR];
+  char* str=(char*)malloc(pEncodedString->uniqCount*sizeof(char));
+  while(cursor<max && count<pEncodedString->totalCount){
+    currentBit=((char*)pEncodedString->data)[cursor/BITS_OF_CHAR];
     currentBit=(currentBit&(1<<(cursor%BITS_OF_CHAR)))!=0;
     currentChar|=(currentBit<<offset);
-    for(i=0,j=-1;i<p->uniqCount;i++){
-      matched=!(char)((p->paths[i]^currentChar)<<(BITS_OF_CHAR-(offset+1)));
+    for(i=0,j=-1;i<pEncodedString->uniqCount;i++){
+      matched=!(char)((pEncodedString->paths[i]^currentChar)<<(BITS_OF_CHAR-(offset+1)));
       if(matched){
         if(j==-1){
           j=i;
@@ -119,7 +128,7 @@ char* decodeString(PEncodedString p){
       }
     }
     if(j!=-1){
-      str[count++]=p->chars[j];
+      str[count++]=pEncodedString->chars[j];
       currentChar=0;
       offset=0;
     }else{
@@ -130,3 +139,9 @@ char* decodeString(PEncodedString p){
   return str;
 }
 
+void releaseEncodedString(PEncodedString pEncodedString){
+  free(pEncodedString->chars);
+  free(pEncodedString->paths);
+  free(pEncodedString->data);
+  free(pEncodedString);
+}
