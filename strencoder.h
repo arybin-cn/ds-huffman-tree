@@ -6,7 +6,7 @@ typedef struct{
   int dataSize;
   void *data;
   char *chars;
-  short *paths;
+  char *paths;
 } EncodedString,*PEncodedString;
 
 int readStringFromFile(char* filename,OUT char** str);

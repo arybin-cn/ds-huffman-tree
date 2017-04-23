@@ -73,23 +73,6 @@ void buildHtTreePathInChar(HtTree* pHtTree,OUT char** paths,OUT char** pathsLeng
   }
 }
 
-void buildHtTreePathInShort(HtTree* pHtTree,OUT short** paths,OUT char** pathsLength){
-  int i,j,tmpLength;
-  *paths=(short*)malloc(sizeof(short)*(pHtTree->leafCount));
-  *pathsLength=(char*)malloc(sizeof(char)*(pHtTree->leafCount));
-  for(i=0;i<pHtTree->leafCount;i++){
-    (*paths)[i]=0;
-    tmpLength=0;j=i;
-    while(pHtTree->nodes[j].parent!=-1){
-      tmpLength+=1;
-      (*paths)[i]<<=1;
-      (*paths)[i]|=(pHtTree->nodes[pHtTree->nodes[j].parent].left==j);
-      j=pHtTree->nodes[j].parent;
-    }
-    (*pathsLength)[i]=tmpLength;
-  }
-}
-
 void printHtTree(HtTree* pHtTree){
   int i;
   HtNode node;

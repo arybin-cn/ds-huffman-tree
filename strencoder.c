@@ -59,19 +59,18 @@ PEncodedString encodeString(char* str){
   PHtTree pHtTree;
   PBitBuffer pBitBuffer;
   int i,j,uniqCount,strLength,wpl,*occursCount;
-  char *occurs,*maps,*pathsLength;
-  short *paths;
+  char *occurs,*maps,*paths,*pathsLength;
 
   strLength=lengthOfString(str);
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
   pHtTree=buildHtTree(occursCount,uniqCount);
-  buildHtTreePathInShort(pHtTree,&paths,&pathsLength);
+  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
   wpl=getHtTreeWPL(pHtTree,pathsLength);
   pBitBuffer=buildBitBuffer(wpl);
 
   for(i=0;i<strLength;i++){
     j=maps[str[i]];
-    appendBitBufferByShort(pBitBuffer,paths[j],pathsLength[j]);
+    appendBitBufferByChar(pBitBuffer,paths[j],pathsLength[j]);
   }
   pEncodedString = (PEncodedString)malloc(sizeof(EncodedString));
   pEncodedString->chars=occurs;
@@ -84,7 +83,7 @@ PEncodedString encodeString(char* str){
 #ifdef DBG
   printf("WPL of Huffman Tree: %d\n",wpl);
   printf("****************************************\n");
-  //printHtTree(pHtTree);
+  printHtTree(pHtTree);
   printf("****************************************\n");
   printf("Raw String size(bytes/bits):\n%d/%d\n",strLength,strLength*8);
   printf("Encoded String size(bytes/bits):\n%d/%d\n",pBitBuffer->byteSize,wpl);
@@ -102,7 +101,7 @@ PEncodedString encodeString(char* str){
   }
   printf("\n****************************************\n");
   printf("Show as binary:\n");
-  //printBitBuffer(pBitBuffer,4,8);
+  printBitBuffer(pBitBuffer,4,8);
   printf("****************************************\n");
 #endif
 
@@ -142,9 +141,7 @@ char* decodeString(PEncodedString pEncodedString){
     }
     cursor++;
   }
-  printf("%d-%d-%d-%d\n",count,cursor,max,lengthOfString(str));
   str[pEncodedString->totalCount*sizeof(char)]='\0';
-//  printf("%s\n",str);
   return str;
 }
 

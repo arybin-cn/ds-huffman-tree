@@ -42,22 +42,6 @@ int appendBitBufferByChar(PBitBuffer pBitBuffer,char charData,int bitLengthData)
   return bitLengthData;
 }
 
-int appendBitBufferByShort(PBitBuffer pBitBuffer,short shortData,int bitLengthData){
-  int bitLengthCurrent;
-  int maxBits=pBitBuffer->byteSize*BITS_OF_CHAR;
-  short* current;
-  if((pBitBuffer->cursor+bitLengthData)>maxBits){
-    printf("Insufficient buffer..\n");
-    return 0;
-  }
-  current=((short*)pBitBuffer->buffer)+pBitBuffer->cursor/16;
-  bitLengthCurrent=pBitBuffer->cursor%16;
-  (*current)|=(shortData<<bitLengthCurrent);
-  (*(current+1))|=(shortData>>(16-bitLengthCurrent));
-  pBitBuffer->cursor+=bitLengthData;
-  return bitLengthData;
-}
-
 void printBuffer(void* buffer,int bitSize,int bitsPerGroup,int groupsPerLine){
   int i=0,j=0,k=0,l=0;
   char* current;
