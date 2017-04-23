@@ -2,7 +2,7 @@
 int main(){
   char *a="Hello World!!";
   PEncodedString pEncodedString;
-//  readStringFromFile("article.txt",&a);
+  readStringFromFile("article.txt",&a);
   pEncodedString=encodeString(a);
   decodeString(pEncodedString);
   releaseEncodedString(pEncodedString);

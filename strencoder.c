@@ -58,21 +58,21 @@ PEncodedString encodeString(char* str){
   PEncodedString pEncodedString;
   PHtTree pHtTree;
   PBitBuffer pBitBuffer;
-  int i,j,uniqCount,strLength;
-  char *occurs,*maps,*paths,*pathsLength;
-  int *occursCount;
+  int i,j,uniqCount,strLength,wpl,*occursCount;
+  char *occurs,*maps,*pathsLength;
+  short *paths;
 
   strLength=lengthOfString(str);
   uniqCount=analyseString(str,&occurs,&occursCount,&maps);
   pHtTree=buildHtTree(occursCount,uniqCount);
-  buildHtTreePathInChar(pHtTree,&paths,&pathsLength);
-  pBitBuffer=buildBitBuffer(getHtTreeWPL(pHtTree,pathsLength));
+  buildHtTreePathInShort(pHtTree,&paths,&pathsLength);
+  wpl=getHtTreeWPL(pHtTree,pathsLength);
+  pBitBuffer=buildBitBuffer(wpl);
 
   for(i=0;i<strLength;i++){
     j=maps[str[i]];
-    appendBitBufferByChar(pBitBuffer,paths[j],pathsLength[j]);
+    appendBitBufferByShort(pBitBuffer,paths[j],pathsLength[j]);
   }
-
   pEncodedString = (PEncodedString)malloc(sizeof(EncodedString));
   pEncodedString->chars=occurs;
   pEncodedString->paths=paths;
@@ -82,23 +82,28 @@ PEncodedString encodeString(char* str){
   pEncodedString->dataSize=pBitBuffer->byteSize;
 
 #ifdef DBG
-  printf("WPL:%d\n",getHtTreeWPL(pHtTree,pathsLength));
-  printf("***************Separator**************\n");
-  printHtTree(pHtTree);
-  printf("***************Separator**************\n");
+  printf("WPL of Huffman Tree: %d\n",wpl);
+  printf("****************************************\n");
+  //printHtTree(pHtTree);
+  printf("****************************************\n");
+  printf("Raw String size(bytes/bits):\n%d/%d\n",strLength,strLength*8);
+  printf("Encoded String size(bytes/bits):\n%d/%d\n",pBitBuffer->byteSize,wpl);
+  printf("Compression rate:\n%.2lf%%\n",100.0*pBitBuffer->byteSize/strLength);
+  printf("Unique chars:\n");
   for(i=0,j=0;i<uniqCount;i++){
     if(occurs[i]!='\n'){
-    printf("  %c %3d | ",occurs[i],occursCount[i]);
+      printf("  %c %3d | ",occurs[i],occursCount[i]);
     }else{
-    printf(" \\n %3d | ",occursCount[i]);
+      printf(" \\n %3d | ",occursCount[i]);
     }
     if(++j%4==0 && i<uniqCount-1){
       printf("\n");
     }
   }
-  printf("\n***************Separator**************\n");
-  printBitBuffer(pBitBuffer,4,6);
-  printf("%s\n",str);
+  printf("\n****************************************\n");
+  printf("Show as binary:\n");
+  //printBitBuffer(pBitBuffer,4,8);
+  printf("****************************************\n");
 #endif
 
   free(maps);free(occursCount);
@@ -109,9 +114,10 @@ PEncodedString encodeString(char* str){
 }
 
 char* decodeString(PEncodedString pEncodedString){
-  int i,j,count=0,cursor=0,max=pEncodedString->dataSize*8;
-  char currentBit,matched,currentChar=0,offset=0;
-  char* str=(char*)malloc(pEncodedString->uniqCount*sizeof(char));
+  int i,j,count=0,cursor=0,max=pEncodedString->dataSize*BITS_OF_CHAR;
+  char currentBit,matched,offset=0;
+  short currentChar=0;
+  char* str=(char*)malloc(1+pEncodedString->totalCount*sizeof(char));
   while(cursor<max && count<pEncodedString->totalCount){
     currentBit=((char*)pEncodedString->data)[cursor/BITS_OF_CHAR];
     currentBit=(currentBit&(1<<(cursor%BITS_OF_CHAR)))!=0;
@@ -136,6 +142,9 @@ char* decodeString(PEncodedString pEncodedString){
     }
     cursor++;
   }
+  printf("%d-%d-%d-%d\n",count,cursor,max,lengthOfString(str));
+  str[pEncodedString->totalCount*sizeof(char)]='\0';
+//  printf("%s\n",str);
   return str;
 }
 
